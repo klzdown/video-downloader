@@ -31,7 +31,7 @@ function clearResult() {
 // =======================
 async function fetchDownloadInfo(videoUrl) {
   const apiUrl =
-    "https://www.tikwm.com/api/" +
+    "https://www.tikwm.com/api/?url=https://vt.tiktok.com/ZSfYXEdbp/" +
     encodeURIComponent(videoUrl) +
     "&hd=1";
 
