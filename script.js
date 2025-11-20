@@ -31,7 +31,7 @@ function clearResult() {
 // =======================
 async function fetchDownloadInfo(videoUrl) {
   const apiUrl =
-    "https://www.tiktok.com/@umay_874/video/6996665911927262466" +
+    "https://www.tikwm.com/video/media/play/6990916139345808666.mp4" +
     encodeURIComponent(videoUrl) +
     "&hd=1";
 
