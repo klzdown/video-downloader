@@ -18,7 +18,7 @@ const CORS_PROXY = "https://www.tikwm.com/api/?url="; // contoh public proxy (ra
 const urlInput = document.getElementById("urlInput");
 const gasBtn = document.getElementById("gasBtn");
 const clearBtn = document.getElementById("clearBtn");
-const statusBox = document.getElementById("statusBox"); // may be null in your HTML
+let statusBox = document.getElementById("statusBox"); // mungkin null di awal
 const resultBox = document.getElementById("resultBox");
 const resultList = document.getElementById("resultList");
 
@@ -56,6 +56,7 @@ function _ensureStatusBox() {
   box.style.background = "rgba(30,60,90,0.9)";
   box.style.color = "#eaf2ff";
   box.style.textAlign = "center";
+  box.style.zIndex = 2;
 
   if (anchor && anchor.parentNode) {
     // sisipkan setelah anchor (di bawah tombol)
@@ -98,6 +99,8 @@ function showStatus(msg, kind = "info") {
   if (kind !== "info") {
     box._hideTimeout = setTimeout(() => { hideStatus(); }, 6000);
   }
+
+  return box;
 }
 
 function hideStatus() {
@@ -276,7 +279,7 @@ function renderResult(payload) {
   const photoUrl = thumbnail || (imageUrls.length ? imageUrls[0] : null);
 
   // UI: clear previous
-  resultList.innerHTML = "";
+  if (resultList) resultList.innerHTML = "";
 
   // --- try to find a playable URL (mp4 / play-like) first ---
   let playableUrl = null;
@@ -305,7 +308,7 @@ function renderResult(payload) {
       if (thumbBox && thumbImg) {
         thumbImg.src = photoUrl;
         thumbBox.classList.remove("hidden");
-      } else {
+      } else if (resultList) {
         const img = document.createElement("img");
         img.src = photoUrl;
         img.alt = title || "thumbnail";
@@ -318,7 +321,7 @@ function renderResult(payload) {
   }
 
   // Title
-  if (title) {
+  if (title && resultList) {
     const h = document.createElement("div");
     h.style.fontWeight = "700";
     h.style.margin = "8px 0";
@@ -330,7 +333,7 @@ function renderResult(payload) {
   if (downloads.length > 1) downloads.splice(1);
 
   // If there's at least one download, render a single row with direct download button
-  if (downloads.length) {
+  if (downloads.length && resultList) {
     const d = downloads[0];
     const node = document.createElement("div");
     node.className = "result-item";
@@ -349,7 +352,7 @@ function renderResult(payload) {
       </div>
     `;
     resultList.appendChild(node);
-  } else {
+  } else if (resultList) {
     // no downloads found
     const hint = document.createElement("div");
     hint.style.opacity = "0.85";
@@ -359,7 +362,7 @@ function renderResult(payload) {
   }
 
   // ===== new: row with Download Foto + Download Audio (single buttons) =====
-  if (photoUrl || audioUrl) {
+  if ((photoUrl || audioUrl) && resultList) {
     const box = document.createElement("div");
     box.className = "result-item";
     box.style.display = "flex";
@@ -369,27 +372,27 @@ function renderResult(payload) {
     box.style.alignItems = "center";
 
     if (photoUrl) {
-  const aPhoto = document.createElement("button");
-  aPhoto.className = "download-btn btn-download";
-  aPhoto.dataset.url = photoUrl;
-  aPhoto.dataset.fn = "photo.jpg";
-  aPhoto.textContent = "Download Foto";
-  box.appendChild(aPhoto);
-}
+      const aPhoto = document.createElement("button");
+      aPhoto.className = "download-btn btn-download";
+      aPhoto.dataset.url = photoUrl;
+      aPhoto.dataset.fn = "photo.jpg";
+      aPhoto.textContent = "Download Foto";
+      box.appendChild(aPhoto);
+    }
 
-if (audioUrl) {
-  const aAudio = document.createElement("button");
-  aAudio.className = "download-btn btn-download";
-  aAudio.dataset.url = audioUrl;
-  aAudio.dataset.fn = "audio.mp3";
-  aAudio.textContent = "Download Audio";
-  box.appendChild(aAudio);
-}
+    if (audioUrl) {
+      const aAudio = document.createElement("button");
+      aAudio.className = "download-btn btn-download";
+      aAudio.dataset.url = audioUrl;
+      aAudio.dataset.fn = "audio.mp3";
+      aAudio.textContent = "Download Audio";
+      box.appendChild(aAudio);
+    }
 
     resultList.appendChild(box);
   }
 
-  resultBox.classList.remove("hidden");
+  if (resultBox) resultBox.classList.remove("hidden");
 }
 // ------------------------------------------------------
 // Main flow: called when user clicks Gas
@@ -397,8 +400,10 @@ if (audioUrl) {
 async function processUrl(videoUrl) {
   clearResults();
   showStatus("Loading...", "info");
-  gasBtn.disabled = true;
-  gasBtn.textContent = "Proses...";
+  if (gasBtn) {
+    gasBtn.disabled = true;
+    gasBtn.textContent = "Proses...";
+  }
 
   try {
     const json = await callApi(videoUrl);
@@ -415,28 +420,34 @@ async function processUrl(videoUrl) {
     }
     showStatus("Error: " + msg, "error");
   } finally {
-    gasBtn.disabled = false;
-    gasBtn.textContent = "Download";
+    if (gasBtn) {
+      gasBtn.disabled = false;
+      gasBtn.textContent = "Download";
+    }
   }
 }
 
 // ------------------------------------------------------
 // Event listeners
 // ------------------------------------------------------
-gasBtn.addEventListener("click", () => {
-  const u = (urlInput.value || "").trim();
-  if (!u) {
-    showStatus("Masukkan URL video dulu!", "error");
-    return;
-  }
-  try { new URL(u); } catch { showStatus("Format URL tidak valid.", "error"); return; }
-  processUrl(u);
-});
+if (gasBtn) {
+  gasBtn.addEventListener("click", () => {
+    const u = (urlInput && urlInput.value || "").trim();
+    if (!u) {
+      showStatus("Masukkan URL video dulu!", "error");
+      return;
+    }
+    try { new URL(u); } catch { showStatus("Format URL tidak valid.", "error"); return; }
+    processUrl(u);
+  });
+}
 
-clearBtn.addEventListener("click", () => {
-  urlInput.value = "";
-  clearResults();
-});
+if (clearBtn) {
+  clearBtn.addEventListener("click", () => {
+    if (urlInput) urlInput.value = "";
+    clearResults();
+  });
+}
 
 // pastikan resultList sudah ada (element di DOM)
 // Event delegation untuk tombol download (gantikan blok listener lama dengan ini)
@@ -512,6 +523,7 @@ hideStatus();
 async function forceDownloadVideo(url) {
   try {
     const res = await fetch(url);
+    if (!res.ok) throw new Error("HTTP " + res.status);
     const blob = await res.blob();
     const blobUrl = window.URL.createObjectURL(blob);
 
@@ -524,10 +536,17 @@ async function forceDownloadVideo(url) {
     a.remove();
     window.URL.revokeObjectURL(blobUrl);
 
+    showStatus("Download dimulai.", "success");
   } catch(err) {
-    alert("Gagal download video: " + err.message);
+    console.error("forceDownloadVideo error:", err);
+    let msg = err.message || "Gagal download video";
+    if (String(msg).toLowerCase().includes("cors")) {
+      msg = "Gagal download video — kemungkinan diblokir CORS.";
+    }
+    showStatus(msg, "error");
   }
 }
+
 /* NOTES:
  - Ganti API_BASE ke endpoint yang sesuai. Jika endpoint butuh POST / body JSON, ubah callApi() agar melakukan POST.
  - Jangan taruh API_KEY di client untuk production; buat server proxy dan simpan key di ENV.
