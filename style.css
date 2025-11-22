@@ -332,3 +332,34 @@ body {
   pointer-events: none;
   z-index: 0;
 }
+/* --- Lightning overlay (pastikan TIDAK blok klik) --- */
+#lightningCanvas,
+.bg-flash {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none; /* -> biar klik melewati overlay */
+  z-index: 0;            /* taruh di bawah konten (.page z-index:1/2) */
+  mix-blend-mode: screen; /* optional, buat glow lebih neon */
+}
+
+/* pastikan konten utama teratas agar bisa diklik */
+.page, .card {
+  position: relative;
+  z-index: 2;
+}
+
+/* jika ada header/toolbar yang juga butuh di atas overlay */
+.header, .button-row, .result, .btn, .download-btn {
+  position: relative;
+  z-index: 3;
+}
+
+/* kalau lo pake elemen .bg-blur atau body::before overlay tipis,
+   pastikan juga z-index nya lebih kecil dari .page */
+body::before, .bg-blur {
+  z-index: 1;
+  pointer-events: none;
+}
