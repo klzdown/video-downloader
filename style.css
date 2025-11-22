@@ -211,7 +211,22 @@ body {
 }
 /* CSS kamu yang sekarang */
 /* .... isi style.css ... */
+/* OPEN BUTTON (sama seperti tombol HAPUS) */
+.open-btn {
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: 2px solid #4b4bff;     /* warna border ghost */
+  background: transparent;        /* transparan */
+  color: #d0d0ff;                 /* warna teks */
+  font-weight: 600;
+  display: inline-block;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
 
+.open-btn:hover {
+  background: rgba(75, 75, 255, 0.2);   /* efek hover sama tombol hapus */
+}
 /* ---- BUTTON ---- */
 .open-btn {
   display: inline-block;
