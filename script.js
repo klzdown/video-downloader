@@ -31,52 +31,57 @@ const thumbImg = document.getElementById("thumbImg");
 // ------------------------------------------------------
 // UI helpers
 // ------------------------------------------------------
+// --- Start: replacement for status-box helpers ---
+// Pastikan status box ditempatkan tepat setelah bar tombol (.button-row)
 function _ensureStatusBox() {
-  // try to get existing
+  // jika sudah ada di DOM, kembalikan
   let box = document.getElementById("statusBox");
   if (box) return box;
 
-  // kalau nggak ada, buat element floating kecil di body
+  // cari bar tombol (button-row) sebagai anchor
+  const anchor = document.querySelector(".button-row") || document.querySelector(".input-row") || null;
+
+  // buat elemen status
   box = document.createElement("div");
   box.id = "statusBox";
-  box.style.position = "fixed";
-  box.style.left = "50%";
-  box.style.transform = "translateX(-50%)";
-  box.style.top = "92px";
-  box.style.zIndex = "9999";
-  box.style.padding = "10px 14px";
-  box.style.borderRadius = "8px";
-  box.style.boxShadow = "0 6px 20px rgba(0,0,0,0.45)";
-  box.style.fontWeight = "600";
-  box.style.maxWidth = "92%";
-  box.style.textAlign = "center";
-  box.style.backdropFilter = "blur(6px)";
+  box.dataset.type = "info";
   box.style.display = "none";
-  box.dataset.type = "info"; // default
-  // minimal color styling; your CSS can override if you add #statusBox selector
+  box.style.marginTop = "12px";
+  box.style.padding = "10px 12px";
+  box.style.borderRadius = "8px";
+  box.style.fontWeight = "600";
+  box.style.maxWidth = "100%";
+  box.style.boxSizing = "border-box";
+  // default warna (CSS kamu bisa override jika nanti tambahkan selector #statusBox)
   box.style.background = "rgba(30,60,90,0.9)";
   box.style.color = "#eaf2ff";
+  box.style.textAlign = "center";
 
-  document.body.appendChild(box);
+  if (anchor && anchor.parentNode) {
+    // sisipkan setelah anchor (di bawah tombol)
+    anchor.parentNode.insertBefore(box, anchor.nextSibling);
+  } else {
+    // fallback: tempatkan di dalam body sebelum resultBox
+    if (typeof resultBox !== "undefined" && resultBox && resultBox.parentNode) {
+      resultBox.parentNode.insertBefore(box, resultBox);
+    } else {
+      document.body.appendChild(box);
+    }
+  }
   return box;
 }
 
 function showStatus(msg, kind = "info") {
-  // prefer existing element referenced by const statusBox if present in DOM
   let box = document.getElementById("statusBox") || _ensureStatusBox();
   if (!box) {
-    // ultimate fallback
-    try { alert(msg); } catch (e) { /* ignore */ }
+    try { alert(msg); } catch (e) {}
     return;
   }
   box.dataset.type = kind;
   box.textContent = msg;
   box.style.display = "block";
 
-  // basic color mapping for the dynamic box so user sees differences
-  if (!document.getElementById("statusBox")) {
-    // nothing — we already appended in _ensureStatusBox
-  }
+  // warna sederhana berdasarkan jenis
   if (kind === "error") {
     box.style.background = "rgba(180,40,60,0.95)";
     box.style.color = "#fff";
@@ -88,14 +93,13 @@ function showStatus(msg, kind = "info") {
     box.style.color = "#eaf2ff";
   }
 
-  // auto-hide after 6s (but keep if it's an 'info' long process)
+  // auto-hide untuk pesan non-info
+  clearTimeout(box._hideTimeout);
   if (kind !== "info") {
-    clearTimeout(box._hideTimeout);
-    box._hideTimeout = setTimeout(() => {
-      try { hideStatus(); } catch (e) {}
-    }, 6000);
+    box._hideTimeout = setTimeout(() => { hideStatus(); }, 6000);
   }
 }
+
 function hideStatus() {
   const box = document.getElementById("statusBox");
   if (!box) return;
@@ -104,6 +108,7 @@ function hideStatus() {
   box.dataset.type = "";
   if (box._hideTimeout) { clearTimeout(box._hideTimeout); box._hideTimeout = null; }
 }
+// --- End: replacement for status-box helpers ---
 
 function clearResults() {
   if (resultList) resultList.innerHTML = "";
