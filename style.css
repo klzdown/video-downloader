@@ -253,3 +253,13 @@ body::before {
 
 /* force readable text color inside cards */
 .card, .card * { color: #eaf2ff; }
+/* MATIKAN SEMUA BLUR */
+.card,
+#urlInput,
+.btn,
+.result,
+.result-item,
+#statusBox {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
